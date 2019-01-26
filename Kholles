@@ -1,0 +1,135 @@
+var EVENT_IMPORTED = "AJOUTE"; // Ajoutera le texte "AJOUTE" dans la colonne K
+var COL_IMP=20;
+var NB_COL=14;
+var ss = SpreadsheetApp.getActiveSpreadsheet();
+var ui = SpreadsheetApp.getUi(); // Same variations.
+var Group= "G";
+var Numero="21";
+
+// TODO - tester semaine 21 jan
+
+function onOpen() {
+   var menuEntries = [{name: "Ajouter les événements à l'agenda", functionName: "importCalendar"}];
+   ss.addMenu("Agenda", menuEntries); // Pour ajouter une menu Agenda et un sous-menu "ajouter les événements" dans la feuille de calcul. Cela permettra de tester manuellement la liaison entre la feuille de calcul et l'agenda
+}
+
+function importCalendar() {
+    var setupInfo = ss.getSheetByName("agenda"); // Nom de la feuille de calcul contenant la nom de l'agenda
+    var calendarName = setupInfo.getRange("B1").getValue(); // Référence de la cellule contenant le nom de l'agenda
+    var Group=  setupInfo.getRange("B2").getValue();
+    var Numero = setupInfo.getRange("B3").getValue();
+    var NBWeekToProcess = setupInfo.getRange("B4").getValue();
+  
+    var sheet = SpreadsheetApp.getActiveSheet();
+    var startcolumn = 1;  // Première colonne de prise en compte des données, soit la colonne B (titre du rendez-vous)
+    var numcolumns = 60;  // Nombre de lignes
+    var dataRange = sheet.getRange(startcolumn, 1, numcolumns, 50)   // Nombre de colonne contenant des données
+    var data = dataRange.getValues();
+  
+    //var Week1Date= sheet.getRange("G1").getValue();
+    //var year = +Week1Date.substring(0, 4)
+    //var month = +Week1Date.substring(4, 6)
+    //var day = +Week1Date.substring(6, 8)
+
+    // var pubdate = new Date(year, month - 1, day)
+  
+  // Boucle sur les colonnes
+ for (var j = 0; j < (NB_COL-(14-NBWeekToProcess)); ++j) {  // boucle sur chaque semaine de la 1er a 14 au max, moins le parametre
+  // Boucle sur toutes les lignes
+  var Week1Date= sheet.getRange(1,7+j).getValue();
+   if(Week1Date < new Date('September 1, 2018 00:00:00')){
+     var Week1Date2 = new Date(Week1Date.getTime() + 365*24*3600*1000) // + 1 an
+     Week1Date=Week1Date2;
+   }
+  sheet.getRange(startcolumn, COL_IMP+1+j).setValue(Week1Date); // Nombre de colonne contenant des données
+  SpreadsheetApp.flush();  
+  for (var i = 0; i < data.length; ++i) { 
+    var column = data[i];
+    var Topic = column[0];
+    var Kholleur = column[1];    // Colonne B - nom du Kholleur
+    var Salle = column[2];       // Colonne C - Salle
+    var Jour = column[3];        // Colonne D - jour dans la semaine
+    switch (Jour) {
+      case 'Lun':
+        var IndiceJour=0         // offset du jour par rapport au lundi
+        break;
+      case 'Mar':
+        var IndiceJour=1         // offset du jour par rapport au lundi
+        break;
+      case 'Mer':
+        var IndiceJour=2         // offset du jour par rapport au lundi
+        break;        
+      case 'Jeu':
+        var IndiceJour=3         // offset du jour par rapport au lundi
+        break;
+      case 'Ven':
+        var IndiceJour=4         // offset du jour par rapport au lundi
+        break;
+      case 'Sam':
+        var IndiceJour=5         // offset du jour par rapport au lundi
+        break;
+      default:
+        var IndiceJour=0         // offset du jour par rapport au lundi
+        }
+        
+    var Debut = column[4];       // Colonne E - Heure de debut
+    var Fin = column[5];         // Colonne F - Heure de fin
+    var GroupWeek = column[6+j];   // Colonne G - Nom du groupe, il faut filter sur cette colomne et ensuite boucler sur les colones suivantes
+    
+    var titre="Kholle de "+ Topic;
+    var description = "Kholleur : "+ Kholleur + " Matiere : "+ Topic + " Salle : "+ Salle // concatenation des champs des colonnes E à J destinée à la zone Description de l'agenda
+    var eventImported = column[COL_IMP+j];// Colonne K - Statut de l'importation - colonne AJOUTE A L'AGENDA
+    //if (j==5 && i>2){
+    //  toto;
+    //}
+
+    var setupInfo = ss.getSheetByName("agenda"); // Nom de la feuille de calcul contenant la nom de l'agenda
+    var calendarName = setupInfo.getRange("B1").getValue(); // Référence de la cellule contenant le nom de l'agenda
+      
+    if (eventImported  != EVENT_IMPORTED && Kholleur != "" && Kholleur != "Kholleur" && (GroupWeek==Group || GroupWeek==Numero)  ) {  // Evite les doublons dans l'agenda, si le texte AJOUTE est présent en K, l'événement n'est pas ajouté
+    var cal = CalendarApp.openByName(calendarName);
+      var Week1DateNoon= new Date(Week1Date);
+      var Week1DateInt= Week1Date.getTime();
+      var DateDebutInt=Week1DateInt+IndiceJour*24*3600*1000;
+      
+      var DebutHR=Debut.getHours();
+      var Debutmn=Debut.getMinutes();
+      //var Debutoff=Debut.getTimezoneOffet();
+      var FintestHR = Fin.getHours();
+      var Fintestmn = Fin.getMinutes();
+      var DateDebut = new Date(DateDebutInt+Debut.getHours()*3600*1000+Debut.getMinutes()*60*1000 +6*3600*1000); //   - 3600000 + 10000*60
+      var DateFin = new Date(DateDebutInt+Fin.getHours()*3600*1000+Fin.getMinutes()*60*1000 +6*3600*1000); // -3600000 + 10000*60
+    if (j==5 && i>2){
+      //toto;
+    }
+      // afficher bouton confirm
+      var result = ui.alert('Please confirm', description + '  '+ GroupWeek+' '+DateDebut+ ' '+ DateFin ,ui.ButtonSet.YES_NO);
+       // Process the user's response.
+      /*if (result == ui.Button.YES) {
+        // User clicked "Yes".
+        ui.alert('Confirmation received.');
+      } else {
+        // User clicked "No" or X in the title bar.
+        ui.alert('Permission denied.');
+      } */
+      if (result ==  ui.Button.YES) {
+      
+      // Création de l'événement dans l'agenda avec le titre, la date de début, la date de fin et la description complète et la salle.
+      //   titi;
+         cal.createEvent(titre,
+
+                      new Date(DateDebut),
+                      new Date(DateFin),
+                      {location: Salle,
+                       description : description});
+      // Logger.log('Event ID: ' + event.getId());
+      
+
+
+         sheet.getRange(startcolumn + i, COL_IMP+1+j).setValue(EVENT_IMPORTED); // Nombre de colonne contenant des données
+         SpreadsheetApp.flush();  
+      }
+    }
+  }
+ }
+}
