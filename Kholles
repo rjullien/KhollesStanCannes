@@ -43,11 +43,6 @@ function importCalendar() {
  for (var j = 0; j <= NBWeekToProcess; ++j) {  // boucle sur chaque semaine de la 1er a 14 au max, moins le parametre
   // Boucle sur toutes les lignes
   var Week1Date= sheet.getRange(1,7+j).getValues();
-   var firstSept=new Date('September 1, 2019 00:00:00').getTime();
-   var weekdate1debug=Week1Date[0][0].getTime();
-   var diffDate=weekdate1debug-firstSept;
-   var diffDateJour=(weekdate1debug-firstSept)/3600000/24;
-   
    if(Week1Date[0][0].getTime() < new Date(AnneeScolaire).getTime()){
      var Week1Date2 = new Date(Week1Date[0][0].getTime() + 365*24*3600*1000) // + 1 an
      var Week1DateNew = [[(new Date(Week1Date2))]];
