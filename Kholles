@@ -22,6 +22,7 @@ function importCalendar() {
     var NbColEntete = setupInfo.getRange("B5").getValue();
     var NbColWeekTotal = setupInfo.getRange("B6").getValue();
     var ConfirmPopUp = setupInfo.getRange("B7").getValue();
+    var AnneeScolaire = setupInfo.getRange("B8").getValue();
     var COL_IMP=NbColEntete+NbColWeekTotal;  // Nombre de colonne contenant des données en entrée, depend du nombre de semaines gerés.
     var NB_COL=NbColWeekTotal; // Nb colonnes avec des data a traiter
   
@@ -42,10 +43,16 @@ function importCalendar() {
  for (var j = 0; j <= NBWeekToProcess; ++j) {  // boucle sur chaque semaine de la 1er a 14 au max, moins le parametre
   // Boucle sur toutes les lignes
   var Week1Date= sheet.getRange(1,7+j).getValues();
-   //if(Week1Date < new Date('September 1, 2018 00:00:00')){
-   //  var Week1Date2 = new Date(Week1Date.getTime() + 365*24*3600*1000) // + 1 an
-   //  Week1Date=Week1Date2;
-  // }
+   var firstSept=new Date('September 1, 2019 00:00:00').getTime();
+   var weekdate1debug=Week1Date[0][0].getTime();
+   var diffDate=weekdate1debug-firstSept;
+   var diffDateJour=(weekdate1debug-firstSept)/3600000/24;
+   
+   if(Week1Date[0][0].getTime() < new Date(AnneeScolaire).getTime()){
+     var Week1Date2 = new Date(Week1Date[0][0].getTime() + 365*24*3600*1000) // + 1 an
+     var Week1DateNew = [[(new Date(Week1Date2))]];
+     Week1Date=Week1DateNew;
+   }
   sheet.getRange(startcolumn, COL_IMP+1+j).setValue(Week1Date); // Nombre de colonne contenant des données
   SpreadsheetApp.flush();  
   for (var i = 0; i < data.length; ++i) { 
@@ -93,7 +100,6 @@ function importCalendar() {
       var Week1DateNoon= new Date(Week1Date);
       var Week1DateInt= Week1Date[0][0].getTime();
       var DateDebutInt=Week1DateInt+IndiceJour*24*3600*1000;
-
       var DateDebut= joinDateAndTime(DateDebutInt,Debut);
       var DateFin = joinDateAndTime(DateDebutInt,Fin);
 
