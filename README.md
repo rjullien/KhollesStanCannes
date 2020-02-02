@@ -22,3 +22,4 @@ Excuter la macro avec le menu agenda
 Donner les autorisations d'acces au calendier
 
 repondre OK pour chaque entrée si confirmation = 1
+
